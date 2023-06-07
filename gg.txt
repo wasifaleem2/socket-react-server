@@ -1,0 +1,55 @@
+const http = require("http");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const socketIO = require("socket.io");
+
+dotenv.config({
+  path: "./config.env",
+});
+
+const express = require("express");
+const app = express();
+const socketUtils = require("./utils/socketUtils");
+
+const server = http.createServer(app);
+
+// const io = socketUtils.sio(server);
+const io = socketIO(server, {
+  transports: ["polling"],
+  cors: {
+    origin: "*",
+  }
+})
+
+// socketUtils.connection(io);
+io.on("connection", (socket) => {
+  console.log("A user is connected");
+
+  socket.on("message", (message) => {
+    console.log(`message from ${socket.id} : ${message}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`socket ${socket.id} disconnected`);
+  });
+});
+
+const socketIOMiddleware = (req, res, next) => {
+  req.io = io;
+  next();
+};
+
+// CORS
+app.use(cors());
+
+// ROUTES
+app.use("/", socketIOMiddleware, (req, res) => {
+  req.io.emit("message", `Hello, ${req.originalUrl}`);
+  res.send("hello world!");
+});
+
+// LISTEN
+const port = process.env.PORT || 8000;
+server.listen(port, () => {
+  console.log(`App running on port ${port}...`);
+});
