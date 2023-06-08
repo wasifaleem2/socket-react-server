@@ -4,11 +4,17 @@ const cors = require("cors");
 const socketIO = require("socket.io");
 const express = require("express");
 const app = express();
+const databaseConnect = require("./database/index");
+const {UserModel} = require('./schema/UserModel')
+
+
 
 // setting dotenv file path
 dotenv.config({
   path: "./config.env",
 });
+
+databaseConnect();
 
 //creating http server
 const server = http.createServer(app);
