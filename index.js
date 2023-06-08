@@ -1,36 +1,57 @@
 const http = require("http");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const socketIO = require("socket.io");
+const express = require("express");
+const app = express();
 
+// setting dotenv file path
 dotenv.config({
   path: "./config.env",
 });
 
-const express = require("express");
-const app = express();
-const socketUtils = require("./utils/socketUtils");
-
+//creating http server
 const server = http.createServer(app);
-const io = socketUtils.sio(server);
-socketUtils.connection(io);
 
-const socketIOMiddleware = (req, res, next) => {
-  req.io = io;
+// creates socketIO server instance use polling for transport
+// and allow cross origin request from cors
+const io = socketIO(server, {
+  transports: ["polling"],
+  //origin * means cross-origin requests from any origin will be allowed.
+  cors: {
+    origin: "*", // or http://localhost:3001 or other for specific origin
+  }
+})
 
-  next();
-};
+// socket io connection code with client
+io.on("connection", (socket) => {
+  console.log("A user is connected");
 
-// CORS
+  // receive message from client
+  socket.on("message", (message) => {
+    console.log(`message from ${socket.id} : ${message}`);
+    // broadcast to other clients
+    socket.broadcast.emit('message', message);
+  });
+
+  // when client disconnects
+  socket.on("disconnect", () => {
+    console.log(`socket ${socket.id} disconnected`);
+  });
+});
+
+// use cors
 app.use(cors());
 
-// ROUTES
-app.use("/api/v1/hello", socketIOMiddleware, (req, res) => {
-  req.io.emit("message", `Hello, ${req.originalUrl}`);
+// route handling
+app.use("/", (req, res) => {
+  io.emit("message", `Hello, ${req.originalUrl}`);
   res.send("hello world!");
 });
 
-// LISTEN
-const port = process.env.PORT || 8000;
+// getting port from env file or use 6000 if not
+const port = process.env.PORT || 6000;
+// server running on PORT from env file
 server.listen(port, () => {
-  console.log(`App running on port ${port}...`);
+  console.log(`App running on port ${port}`);
 });
