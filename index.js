@@ -5,7 +5,9 @@ const socketIO = require("socket.io");
 const express = require("express");
 const app = express();
 const databaseConnect = require("./database/index");
-// const {UserModel} = require('./schema/UserModel')
+const  MessageModel  = require('./models/MessagesModel');
+const AuthModel = require("./models/AuthModel");
+
 
 
 
@@ -37,6 +39,14 @@ io.on("connection", (socket) => {
   socket.on("message", (data) => {
     console.log(`message from ${socket.id} : ${data.message} @date ${data.date} ${data.time}`);
     // broadcast to other clients
+    try{
+      //{senderNumber:"555", receiverNumber:"333", text:data.message, date:data.date, time:data.time, messageType:"text"}
+      let msg = new MessageModel({senderNumber:"555", receiverNumber:"333", text:data.message, date:data.date, time:data.time, messageType:"text"})
+      msg.save();
+    }
+    catch(error){
+      console.log(error)
+    }
     socket.broadcast.emit('message', data);
   });
 
