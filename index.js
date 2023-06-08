@@ -5,7 +5,7 @@ const socketIO = require("socket.io");
 const express = require("express");
 const app = express();
 const databaseConnect = require("./database/index");
-const {UserModel} = require('./schema/UserModel')
+// const {UserModel} = require('./schema/UserModel')
 
 
 
@@ -34,10 +34,10 @@ io.on("connection", (socket) => {
   console.log("A user is connected");
 
   // receive message from client
-  socket.on("message", (message) => {
-    console.log(`message from ${socket.id} : ${message}`);
+  socket.on("message", (data) => {
+    console.log(`message from ${socket.id} : ${data.message} @date ${data.date} ${data.time}`);
     // broadcast to other clients
-    socket.broadcast.emit('message', message);
+    socket.broadcast.emit('message', data);
   });
 
   // when client disconnects
