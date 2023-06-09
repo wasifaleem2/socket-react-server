@@ -62,8 +62,15 @@ io.on("connection", (socket) => {
   // when client disconnects
   socket.on("disconnect", () => {
     console.log(`socket ${socket.id} disconnected`);
+    connectedUsers = connectedUsers.filter((user) => user !== socket.id);
+    io.emit("connected_users", { connectedUsers });
   });
 });
+
+// disconnect all the socket connections 
+// connectedUsers.forEach((socket) => {
+//   socket.disconnect(true); 
+// });
 
 // use cors
 app.use(cors());
