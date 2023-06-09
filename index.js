@@ -5,7 +5,9 @@ const socketIO = require("socket.io");
 const express = require("express");
 const app = express();
 const databaseConnect = require("./database/index");
-// const {UserModel} = require('./schema/UserModel')
+const  MessageModel  = require('./models/MessagesModel');
+const AuthModel = require("./models/AuthModel");
+
 
 
 
@@ -29,15 +31,32 @@ const io = socketIO(server, {
   }
 })
 
+// array of all connected users
+let connectedUsers = [];
 // socket io connection code with client
 io.on("connection", (socket) => {
   console.log("A user is connected");
-
-  // receive message from client
+  connectedUsers.push(socket.id);
+  console.log("user list",connectedUsers);
+  let userSid = socket.id;
+  // sending updated list of clients to all clients use io instead of socket to send to every user
+  socket.emit("socket_id", userSid);
+  io.emit("connected_users", { connectedUsers });
   socket.on("message", (data) => {
-    console.log(`message from ${socket.id} : ${data.message} @date ${data.date} ${data.time}`);
+    console.log(`message from ${socket.id} to ${data.recipient} : ${data.message} @date ${data.date} ${data.time}`);
     // broadcast to other clients
-    socket.broadcast.emit('message', data);
+    try{
+      //{senderNumber:"555", receiverNumber:"333", text:data.message, date:data.date, time:data.time, messageType:"text"}
+      let msg = new MessageModel({senderNumber:"555", receiverNumber:"333", text:data.message, date:data.date, time:data.time, messageType:"text"})
+      msg.save();
+    }
+    catch(error){
+      console.log(error)
+    }
+    // sending message to all users 
+    // socket.broadcast.emit('message', data);
+    // for sending data specific client using socket id (data.receipent) coming from client
+    io.to(data.recipient).emit('message', data)
   });
 
   // when client disconnects
