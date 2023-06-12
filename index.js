@@ -56,6 +56,7 @@ io.on("connection", (socket) => {
     // sending message to all users 
     // socket.broadcast.emit('message', data);
     // for sending data specific client using socket id (data.receipent) coming from client
+    io.to(data.sender).emit('message', data)
     io.to(data.recipient).emit('message', data)
   });
 
