@@ -47,7 +47,7 @@ io.on("connection", (socket) => {
     // broadcast to other clients
     try{
       //{senderNumber:"555", receiverNumber:"333", text:data.message, date:data.date, time:data.time, messageType:"text"}
-      let msg = new MessageModel({senderNumber:"555", receiverNumber:"333", text:data.message, date:data.date, time:data.time, messageType:"text"})
+      let msg = new MessageModel({senderNumber:"555", receiverNumber:"123", text:data.message, date:data.date, time:data.time, messageType:"text"})
       msg.save();
     }
     catch(error){
