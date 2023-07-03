@@ -5,8 +5,9 @@ const socketIO = require("socket.io");
 const express = require("express");
 const app = express();
 const databaseConnect = require("./database/index");
-const  MessageModel  = require('./models/MessagesModel');
+const MessageModel = require('./models/MessagesModel');
 const AuthModel = require("./models/AuthModel");
+const UserModel = require("./models/UserModel");
 
 
 
@@ -35,9 +36,17 @@ const io = socketIO(server, {
 let connectedUsers = [];
 // socket io connection code with client
 io.on("connection", (socket) => {
-  console.log("A user is connected");
+  const userPhone = socket.handshake.query.userPhone;
+  UserModel.findOneAndUpdate({ phone: userPhone }, { socketId: socket.id })
+  .then(()=>{
+    console.log("socket id update")
+  })
+  .catch((err)=>{
+    console.log("error")
+  })
+  console.log("A user is connected", userPhone);
   connectedUsers.push(socket.id);
-  console.log("user list",connectedUsers);
+  // console.log("user list",connectedUsers);
   let userSid = socket.id;
   // sending updated list of clients to all clients use io instead of socket to send to every user
   socket.emit("socket_id", userSid);
@@ -45,12 +54,12 @@ io.on("connection", (socket) => {
   socket.on("message", (data) => {
     console.log(`message from ${socket.id} to ${data.recipient} : ${data.message} @date ${data.date} ${data.time}`);
     // broadcast to other clients
-    try{
+    try {
       //{senderNumber:"555", receiverNumber:"333", text:data.message, date:data.date, time:data.time, messageType:"text"}
-      let msg = new MessageModel({senderNumber:"555", receiverNumber:"123", text:data.message, date:data.date, time:data.time, messageType:"text"})
+      let msg = new MessageModel({ senderNumber: "555", receiverNumber: "123", text: data.message, date: data.date, time: data.time, messageType: "text" })
       msg.save();
     }
-    catch(error){
+    catch (error) {
       console.log(error)
     }
     // sending message to all users 
