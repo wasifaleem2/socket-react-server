@@ -73,6 +73,8 @@ io.on("connection", (socket) => {
   socket.on("typing", (data) => {
     io.to(data.recipient).emit('typing-indicator', data);
   });
+
+
   // when client disconnects
   socket.on("disconnect", () => {
     console.log(`socket ${socket.id} disconnected`);
