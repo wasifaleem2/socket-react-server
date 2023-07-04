@@ -51,13 +51,16 @@ io.on("connection", (socket) => {
   // sending updated list of clients to all clients use io instead of socket to send to every user
   socket.emit("socket_id", userSid);
   io.emit("connected_users", { connectedUsers });
-  socket.on("message", (data) => {
+  socket.on("message", async (data) => {
     console.log(`message from ${socket.id} to ${data.recipient} : ${data.message} @date ${data.date} ${data.time}`);
+
     // broadcast to other clients
     try {
+      let umodel = await UserModel.findOne({socketId:data.recipient})
+      // console.log("umodel", umodel.phone)
       //{senderNumber:"555", receiverNumber:"333", text:data.message, date:data.date, time:data.time, messageType:"text"}
-      let msg = new MessageModel({ senderNumber: "555", receiverNumber: "123", text: data.message, date: data.date, time: data.time, messageType: "text" })
-      msg.save();
+      let msg = new MessageModel({ senderNumber: data.senderPhone, receiverNumber: umodel.phone, text: data.message, date: data.date, time: data.time, messageType: "text" })
+      await msg.save();
     }
     catch (error) {
       console.log(error)
@@ -98,7 +101,7 @@ app.use("/", (req, res) => {
 });
 
 // getting port from env file or use 6000 if not
-const port = process.env.PORT || 6000;
+const port = process.env.PORT || 3007;
 // server running on PORT from env file
 server.listen(port, () => {
   console.log(`App running on port ${port}`);
